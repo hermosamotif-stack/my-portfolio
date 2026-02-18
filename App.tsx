@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: "I'm Ender's AI strategist. How can I assist your visual narrative today?" }
+    { role: 'assistant', content: "Hi! I can help you know more about Falalu's design work. What would you like to know?" }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -118,7 +118,7 @@ const App: React.FC = () => {
     setIsChatLoading(false);
   };
 
-  // Login Handler (പഴയ ലോഗിൻ രീതി)
+  // Login Handler (പഴയ ലോഗിൻ രീതി - Token വേണ്ട)
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Valid credentials: lazza / posterfallu447
@@ -128,7 +128,7 @@ const App: React.FC = () => {
       setLoginError('');
       setLoginCreds({ user: '', pass: '' });
     } else {
-      setLoginError('Invalid architect credentials.');
+      setLoginError('Invalid credentials.');
     }
   };
 
@@ -285,7 +285,7 @@ const App: React.FC = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-6 md:px-12 flex justify-between items-center">
         <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer" onClick={() => scrollTo('hero')}>
-          ENDER 
+          FALALU 
           <span className="flex h-2 w-2 rounded-full bg-green-500 pulse-green"></span>
         </div>
         
@@ -300,11 +300,11 @@ const App: React.FC = () => {
           className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all flex items-center gap-2"
         >
           <LockIcon />
-          Studio Auth
+          Admin
         </button>
       </nav>
 
-      {/* Login Modal (Token ഒഴിവാക്കി, പഴയ ലോഗിൻ) */}
+      {/* Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6">
           <div className="w-full max-w-md bg-zinc-900 border border-white/10 p-12 rounded-[2rem] relative reveal active">
@@ -312,7 +312,7 @@ const App: React.FC = () => {
               <CloseIcon />
             </button>
             <div className="mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter uppercase italic mb-2">Architect Access</h2>
+              <h2 className="text-3xl font-bold tracking-tighter uppercase italic mb-2">Admin Access</h2>
               <p className="text-[10px] uppercase tracking-[0.3em] opacity-40">Identify yourself to enter the workspace</p>
             </div>
             <form onSubmit={handleLogin} className="space-y-6">
@@ -322,7 +322,7 @@ const App: React.FC = () => {
                   type="text"
                   autoFocus
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-white/30 transition-all text-sm"
-                  placeholder="Enderbox"
+                  placeholder="Username"
                   value={loginCreds.user}
                   onChange={e => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
                 />
@@ -352,21 +352,21 @@ const App: React.FC = () => {
       {/* Hero Section */}
       <section id="hero" className="h-screen flex flex-col justify-center px-6 md:px-12 lg:px-24">
         <div className="max-w-7xl reveal">
-          <span className="block text-xs uppercase tracking-[0.4em] mb-6 text-blue-500 font-bold">Visual Architect</span>
+          <span className="block text-xs uppercase tracking-[0.4em] mb-6 text-blue-500 font-bold">Graphic Designer</span>
           <h1 className="text-[12vw] md:text-[8vw] lg:text-[7vw] font-extrabold leading-[0.85] tracking-tighter mb-12">
             DESIGNING <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/20">DIGITAL</span> <br />
-            IDENTITIES.
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/20">VISUAL</span> <br />
+            STORIES.
           </h1>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <p className="text-lg md:text-xl max-w-xl text-white/50 leading-relaxed uppercase tracking-tight">
-              Focusing on Logo Systems, Posters, and high-end Print collateral. Studio-grade aesthetics for modern brands.
+              Specializing in Branding, Logo Design, and Motion Graphics. Creating memorable visual identities for modern brands.
             </p>
             <div className="flex items-center gap-4 cursor-pointer" onClick={() => scrollTo('work')}>
                <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center animate-bounce">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
                </div>
-               <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">Explore Gallery</span>
+               <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">Explore Work</span>
             </div>
           </div>
         </div>
@@ -403,10 +403,6 @@ const App: React.FC = () => {
               ))}
             </div>
           </div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-white/40 max-w-xs leading-loose text-right hidden md:block">
-            01 — Portfolio / Collection <br />
-            High-fidelity design assets.
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24 min-h-[600px]">
@@ -419,7 +415,7 @@ const App: React.FC = () => {
                 <img 
                   src={project.imageUrl} 
                   alt={project.title} 
-                  // ഇവിടെ Grayscale ഒഴിവാക്കി, ഒറിജിനൽ കളർ നൽകി
+                  // Original Color (No Grayscale)
                   className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
                 />
                 
@@ -450,36 +446,36 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* About Section (UPDATED FROM CV) */}
       <section id="about" className="py-48 px-6 md:px-12 lg:px-24 bg-white text-black rounded-[3rem] md:rounded-[6rem] mx-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
           <div className="reveal">
             <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
             <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-              REFINING <br /> THE <br /> <span className="text-zinc-300">CORE.</span>
+              CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
             </h2>
           </div>
           <div className="reveal space-y-12">
             <p className="text-2xl md:text-4xl leading-tight font-medium">
-              Ender works at the intersection of brand identity and tactile design. We craft logos that resonate and print collateral that leaves a lasting impression.
+              [cite_start]I am Falalu Rahman[cite: 2][cite_start], a Graphic Designer[cite: 3] [cite_start]with a passion for creative visual storytelling[cite: 9]. [cite_start]With a focus on branding, logo design, and motion graphics[cite: 8], I bring ideas to life.
             </p>
             <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                <div>
-                  <h4 className="mb-4 opacity-40">Specialties</h4>
+                  <h4 className="mb-4 opacity-40">Software Skills</h4>
                   <ul className="space-y-2">
-                    <li>Logo Systems</li>
-                    <li>Poster Design</li>
-                    <li>Business Cards</li>
-                    <li>Illustrations</li>
+                    [cite_start]<li>Photoshop[cite: 16]</li>
+                    [cite_start]<li>Illustrator[cite: 18]</li>
+                    [cite_start]<li>InDesign[cite: 17]</li>
+                    [cite_start]<li>Corel Draw[cite: 23]</li>
                   </ul>
                </div>
                <div>
-                  <h4 className="mb-4 opacity-40">Process</h4>
+                  <h4 className="mb-4 opacity-40">Focus Areas</h4>
                   <ul className="space-y-2">
-                    <li>Discovery</li>
-                    <li>Iteration</li>
-                    <li>Execution</li>
-                    <li>Refinement</li>
+                    [cite_start]<li>Branding[cite: 8]</li>
+                    [cite_start]<li>Logo Design[cite: 8]</li>
+                    [cite_start]<li>Motion Graphics[cite: 8]</li>
+                    [cite_start]<li>Creative Ads[cite: 19]</li>
                   </ul>
                </div>
             </div>
@@ -487,19 +483,22 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Contact Section (UPDATED FROM CV) */}
       <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
         <div className="max-w-4xl mx-auto reveal">
           <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
-            <a href="mailto:contact@ender.studio" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">contact@ender.studio</a>
-            <button className="px-8 py-4 bg-white text-black rounded-full font-bold uppercase text-xs tracking-widest hover:bg-blue-500 hover:text-white transition-all">Copy Mail</button>
+            [cite_start]<a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com[cite: 4]</a>
           </div>
           
+           <div className="text-xl opacity-60 font-medium mb-12">
+            [cite_start]+91 7994055131[cite: 4]
+          </div>
+
           <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-            <a href="#" className="hover:opacity-100 transition-opacity">Twitter</a>
+            <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
             <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">Dribbble</a>
+            <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
           </div>
         </div>
       </section>
@@ -511,7 +510,7 @@ const App: React.FC = () => {
             <div className="bg-white text-black px-6 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <BotIcon />
-                <span className="text-xs font-bold uppercase tracking-widest">Design Strategist</span>
+                <span className="text-xs font-bold uppercase tracking-widest">Assistant</span>
               </div>
               <button onClick={() => setIsChatOpen(false)}><CloseIcon /></button>
             </div>
@@ -539,7 +538,7 @@ const App: React.FC = () => {
                 type="text" 
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask about Logo or Poster design..." 
+                placeholder="Ask about my work..." 
                 className="flex-1 bg-zinc-900 border border-white/5 rounded-full px-4 py-2 text-sm outline-none focus:border-white/20"
               />
               <button type="submit" className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center"><SendIcon /></button>
