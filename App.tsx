@@ -489,7 +489,7 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto reveal">
           <h2 className="text-6xl md:text-[5vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
-           <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com[cite: 4]</a>
+           <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
           </div>
           
            <div className="text-xl opacity-60 font-medium mb-12">
