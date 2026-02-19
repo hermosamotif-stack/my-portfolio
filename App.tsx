@@ -452,7 +452,7 @@ const App: React.FC = () => {
           <div className="reveal">
             <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
             <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-              ABOUT <br />   <br /> <span className="text-zinc-300">ME.</span>
+              ABOUT <br />  <span className="text-zinc-300">ME.</span>
             </h2>
           </div>
           <div className="reveal space-y-12">
