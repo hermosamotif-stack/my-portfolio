@@ -487,20 +487,20 @@ const App: React.FC = () => {
       {/* Contact Section (UPDATED FROM CV) */}
       <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
         <div className="max-w-4xl mx-auto reveal">
-          <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
+          <h2 className="text-6xl md:text-[5vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
-            [cite_start]<a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com[cite: 4]</a>
+           <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com[cite: 4]</a>
           </div>
           
            <div className="text-xl opacity-60 font-medium mb-12">
-            <h1>+91 Contact number </h1>
-             <h3>+91 7994055131</h3>
+            
+             <h3>Contact number +91 7994055131</h3>
           </div>
 
           <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-            <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
+            <a href="https://wa.me/7994055131" className="hover:opacity-100 transition-opacity">WhatsApp</a>
+            <a href="https://www.linkedin.com/in/fallulu-rahman-030865355?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" className="hover:opacity-100 transition-opacity">LinkedIn</a>
+            <a href="https://www.instagram.com/hermosa_motif/" className="hover:opacity-100 transition-opacity">Instagram</a>
           </div>
         </div>
       </section>
