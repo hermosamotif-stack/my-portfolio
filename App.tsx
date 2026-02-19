@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { PROJECTS as INITIAL_PROJECTS } from './constants';
 import { Section, ChatMessage, Project } from './types';
 import { getGeminiResponse } from './services/geminiService';
 
@@ -20,7 +21,10 @@ const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height
 const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
 
 const App: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const saved = localStorage.getItem('ender_projects');
+    return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
+  });
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   // Security State
@@ -42,7 +46,6 @@ const App: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   
-  // Custom Cursor State
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
   
@@ -50,14 +53,23 @@ const App: React.FC = () => {
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // 1. Fetch Projects from GitHub JSON on Load
+  // 1. Fetch Projects from RAW GitHub File (ഏറ്റവും പുതിയ മാറ്റം)
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch(`./${PROJECTS_FILE_PATH}?t=${Date.now()}`); 
-        if (!response.ok) throw new Error("Failed to load projects");
+        // ഇവിടെ നമ്മൾ ഗിറ്റ്ഹബ്ബിലെ ഒറിജിനൽ ഡാറ്റ നേരിട്ട് വിളിക്കുന്നു
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/main/${PROJECTS_FILE_PATH}?t=${Date.now()}`;
+        const response = await fetch(rawUrl); 
+        
+        if (!response.ok) throw new Error("Failed to load projects from GitHub");
+        
         const data = await response.json();
-        setProjects(data);
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          setProjects(data);
+          // എല്ലാവർക്കും ഡാറ്റ കിട്ടാൻ വേണ്ടി അത് സിങ്ക് ചെയ്യുന്നു
+          localStorage.setItem('ender_projects', JSON.stringify(data));
+        }
       } catch (error) {
         console.error("Error loading projects:", error);
       } finally {
@@ -85,12 +97,10 @@ const App: React.FC = () => {
     }
   }, [activeCategory, categories]);
 
-  // CUSTOM CURSOR LOGIC (Works everywhere)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPos({ x: e.clientX, y: e.clientY });
       const target = e.target as HTMLElement;
-      // Check if hovering over clickable elements
       const isClickable = target.closest('button, a, input, select, textarea, label, .cursor-pointer, .cursor-zoom-in');
       setIsPointer(!!isClickable);
     };
@@ -199,7 +209,7 @@ const App: React.FC = () => {
             throw new Error(err.message || "Failed to update");
         }
 
-        setSaveStatus('Saved! Live site will update in ~2 mins.');
+        setSaveStatus('Saved! Data is live immediately.');
         setTimeout(() => setSaveStatus(''), 5000);
 
     } catch (error: any) {
@@ -242,13 +252,10 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // ============================================================================
-  // MAIN RENDER (Combines Admin & Public views so the cursor is ALWAYS present)
-  // ============================================================================
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white overflow-x-hidden relative">
       
-      {/* 🔴 CUSTOM CURSOR (Now Active Everywhere) 🔴 */}
+      {/* 🔴 CUSTOM CURSOR 🔴 */}
       <div 
         id="custom-cursor"
         className={`fixed top-0 left-0 w-4 h-4 rounded-full bg-white z-[9999] pointer-events-none mix-blend-difference transition-transform duration-200 ease-out flex items-center justify-center ${isPointer ? 'scale-[4] blur-[1px]' : 'scale-100'}`}
@@ -364,7 +371,6 @@ const App: React.FC = () => {
       ) : (
         /* ================= PUBLIC WEBSITE ================= */
         <>
-          {/* Navigation */}
           <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-6 md:px-12 flex justify-between items-center">
             <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer" onClick={() => scrollTo('hero')}>
               FALALU 
@@ -492,7 +498,6 @@ const App: React.FC = () => {
               <div className="w-full md:w-auto">
                 <h2 className="text-5xl md:text-8xl font-bold tracking-tighter italic reveal uppercase mb-12">Selected <br />Works</h2>
                 
-                {/* Category Tab */}
                 <div className="relative inline-flex items-center p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md reveal">
                   <div 
                     className="absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-out z-0"
@@ -519,7 +524,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* MASONRY LAYOUT */}
             <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 min-h-[600px]">
               {isLoadingProjects ? (
                  <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em] animate-pulse">
@@ -537,7 +541,6 @@ const App: React.FC = () => {
                       className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     
-                    {/* Hover Reveal Info */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
                       <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
                          <span className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-2 block">{project.category}</span>
