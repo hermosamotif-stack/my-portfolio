@@ -3,7 +3,7 @@ import { Section, ChatMessage, Project } from './types';
 import { getGeminiResponse } from './services/geminiService';
 
 // ==========================================
-// CONFIGURATION (ഇവിടെ നിങ്ങളുടെ വിവരങ്ങൾ നൽകുക)
+// CONFIGURATION 
 // ==========================================
 const GITHUB_USERNAME = 'hermosamotif-stack'; 
 const GITHUB_REPO_NAME = 'my-portfolio';
@@ -41,14 +41,16 @@ const App: React.FC = () => {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  // Custom Cursor State
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // 1. Fetch Projects from GitHub JSON on Load (ഇത് എല്ലാവർക്കും ഡാറ്റ ലഭ്യമാക്കുന്നു)
+  // 1. Fetch Projects from GitHub JSON on Load
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -83,11 +85,14 @@ const App: React.FC = () => {
     }
   }, [activeCategory, categories]);
 
+  // CUSTOM CURSOR LOGIC (Works everywhere)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPos({ x: e.clientX, y: e.clientY });
       const target = e.target as HTMLElement;
-      setIsPointer(window.getComputedStyle(target).cursor === 'pointer');
+      // Check if hovering over clickable elements
+      const isClickable = target.closest('button, a, input, select, textarea, label, .cursor-pointer, .cursor-zoom-in');
+      setIsPointer(!!isClickable);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -133,7 +138,6 @@ const App: React.FC = () => {
     setIsChatLoading(false);
   };
 
-  // Login Handler (ഇവിടെ Token ആവശ്യമാണ്)
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginCreds.user === 'lazza' && loginCreds.pass === 'posterfallu447') {
@@ -151,7 +155,6 @@ const App: React.FC = () => {
     }
   };
 
-  // 2. GitHub Sync Functionality (മാറ്റങ്ങൾ ഗിറ്റ്ഹബ്ബിലേക്ക് സേവ് ചെയ്യുന്നു)
   const saveToGitHub = async () => {
     if (!githubToken) {
         alert("GitHub Token missing. Please relogin.");
@@ -239,440 +242,428 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  if (isAdmin) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white p-8 md:p-16">
-        <div className="max-w-7xl mx-auto">
-          <header className="flex justify-between items-center mb-16 reveal">
-            <div>
-              <h1 className="text-4xl font-extrabold tracking-tighter uppercase italic">Control Panel</h1>
-              <p className="text-xs uppercase tracking-[0.3em] opacity-40 mt-2">Manage your visual archive</p>
-            </div>
-            <div className="flex gap-4">
-                 <button 
-                  onClick={saveToGitHub}
-                  disabled={isSaving}
-                  className={`flex items-center gap-2 px-6 py-3 border border-green-500/20 bg-green-900/10 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all ${isSaving ? 'opacity-50' : ''}`}
-                >
-                  <SaveIcon /> {isSaving ? 'Syncing...' : 'Save to Cloud'}
-                </button>
-                <button 
-                  onClick={() => setIsAdmin(false)}
-                  className="px-6 py-3 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-                >
-                  Sign Out
-                </button>
-            </div>
-          </header>
-
-          {saveStatus && (
-              <div className={`mb-8 p-4 rounded-lg text-center text-xs font-bold uppercase tracking-widest ${saveStatus.includes('Error') ? 'bg-red-900/50 text-red-200' : 'bg-green-900/50 text-green-200'}`}>
-                  {saveStatus}
-              </div>
-          )}
-
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-bold uppercase tracking-widest">Active Works ({projects.length})</h2>
-            <button 
-              onClick={addProject}
-              className="flex items-center gap-2 bg-blue-600 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 transition-all"
-            >
-              <PlusIcon /> Add New Work
-            </button>
-          </div>
-
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {projects.map(project => (
-              <div key={project.id} className="break-inside-avoid bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col mb-6">
-                <div className="mb-6 rounded-lg overflow-hidden bg-black relative group">
-                  <img src={project.imageUrl} className="w-full h-auto object-cover opacity-50 group-hover:opacity-80 transition-opacity" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <label className="cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                      Change Image
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
-                      />
-                    </label>
-                  </div>
-                </div>
-                <div className="space-y-4 flex-1">
-                  <input 
-                    className="w-full bg-transparent border-b border-white/10 py-1 text-lg font-bold outline-none focus:border-blue-500 transition-colors"
-                    value={project.title}
-                    onChange={(e) => updateProject(project.id, { title: e.target.value })}
-                    placeholder="Title"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <select 
-                      className="bg-zinc-800 rounded-lg px-3 py-2 text-[10px] uppercase tracking-widest font-bold outline-none border border-transparent focus:border-white/20"
-                      value={project.category}
-                      onChange={(e) => updateProject(project.id, { category: e.target.value })}
-                    >
-                      <option>Logo Design</option>
-                      <option>Poster Design</option>
-                      <option>Business Card</option>
-                      <option>Illustrations</option>
-                      <option>Motion Graphics</option>
-                    </select>
-                    <input 
-                      className="bg-zinc-800 rounded-lg px-3 py-2 text-[10px] uppercase tracking-widest font-bold outline-none border border-transparent focus:border-white/20"
-                      value={project.year}
-                      onChange={(e) => updateProject(project.id, { year: e.target.value })}
-                      placeholder="Year"
-                    />
-                  </div>
-                  <textarea 
-                    className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white/60 outline-none border border-transparent focus:border-white/20 resize-none"
-                    rows={2}
-                    value={project.description}
-                    onChange={(e) => updateProject(project.id, { description: e.target.value })}
-                    placeholder="Description"
-                  />
-                  
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Project Image</span>
-                    <label className="w-full bg-zinc-800/50 border border-white/10 rounded-lg px-3 py-3 text-[10px] text-white/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800 transition-colors">
-                      <UploadIcon />
-                      <span>{project.imageUrl.startsWith('data:') ? 'Custom Image Loaded' : 'Upload New Asset'}</span>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
-                    <button 
-                      onClick={() => deleteProject(project.id)}
-                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --------------------------------------------------------------------------
-  // PUBLIC SITE RENDER
-  // --------------------------------------------------------------------------
+  // ============================================================================
+  // MAIN RENDER (Combines Admin & Public views so the cursor is ALWAYS present)
+  // ============================================================================
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white overflow-x-hidden">
-      {/* Custom Cursor */}
+    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white overflow-x-hidden relative">
+      
+      {/* 🔴 CUSTOM CURSOR (Now Active Everywhere) 🔴 */}
       <div 
         id="custom-cursor"
-        className={`fixed top-0 left-0 w-4 h-4 rounded-full bg-white z-[9999] pointer-events-none mix-blend-difference transition-transform duration-200 ease-out ${isPointer ? 'scale-[4] blur-[1px]' : 'scale-100'}`}
-        style={{ transform: `translate3d(${cursorPos.x - 8}px, ${cursorPos.y - 8}px, 0) ${isPointer ? 'scale(4)' : 'scale(1)'}` }}
+        className={`fixed top-0 left-0 w-4 h-4 rounded-full bg-white z-[9999] pointer-events-none mix-blend-difference transition-transform duration-200 ease-out flex items-center justify-center ${isPointer ? 'scale-[4] blur-[1px]' : 'scale-100'}`}
+        style={{ transform: `translate3d(${cursorPos.x - 8}px, ${cursorPos.y - 8}px, 0)` }}
       ></div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-6 md:px-12 flex justify-between items-center">
-        <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer" onClick={() => scrollTo('hero')}>
-          FALALU 
-          <span className="flex h-2 w-2 rounded-full bg-green-500 pulse-green"></span>
-        </div>
-        
-        <div className="hidden md:flex space-x-12 text-[10px] font-bold uppercase tracking-[0.3em]">
-          <button onClick={() => scrollTo('work')} className="hover:opacity-50 transition-opacity">Work</button>
-          <button onClick={() => scrollTo('about')} className="hover:opacity-50 transition-opacity">About</button>
-          <button onClick={() => scrollTo('contact')} className="hover:opacity-50 transition-opacity">Contact</button>
-        </div>
-
-        <button 
-          onClick={() => setShowLogin(true)}
-          className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all flex items-center gap-2"
-        >
-          <LockIcon />
-          Admin
-        </button>
-      </nav>
-
-      {/* Lightbox / Full Screen View */}
-      {selectedProject && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300" onClick={() => setSelectedProject(null)}>
-          <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-4 z-[101]">
-             <CloseIcon />
-          </button>
-          <div className="max-w-7xl w-full max-h-screen flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
-            <img 
-              src={selectedProject.imageUrl} 
-              alt={selectedProject.title} 
-              className="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl mb-8" 
-            />
-            <div className="text-center">
-               <h3 className="text-2xl font-bold tracking-tighter mb-2">{selectedProject.title}</h3>
-               <p className="text-white/50 uppercase tracking-widest text-xs">{selectedProject.category} — {selectedProject.year}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Login Modal */}
-      {showLogin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6">
-          <div className="w-full max-w-md bg-zinc-900 border border-white/10 p-12 rounded-[2rem] relative reveal active">
-            <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors">
-              <CloseIcon />
-            </button>
-            <div className="mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter uppercase italic mb-2">Admin Access</h2>
-              <p className="text-[10px] uppercase tracking-[0.3em] opacity-40">Identify yourself to enter the workspace</p>
-            </div>
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1">Username</label>
-                <input 
-                  type="text"
-                  autoFocus
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-white/30 transition-all text-sm"
-                  placeholder="Username"
-                  value={loginCreds.user}
-                  onChange={e => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
-                />
+      {isAdmin ? (
+        /* ================= ADMIN PANEL ================= */
+        <div className="p-8 md:p-16">
+          <div className="max-w-7xl mx-auto">
+            <header className="flex justify-between items-center mb-16 reveal">
+              <div>
+                <h1 className="text-4xl font-extrabold tracking-tighter uppercase italic">Control Panel</h1>
+                <p className="text-xs uppercase tracking-[0.3em] opacity-40 mt-2">Manage your visual archive</p>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1">Password</label>
-                <input 
-                  type="password"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-white/30 transition-all text-sm"
-                  placeholder="••••••••"
-                  value={loginCreds.pass}
-                  onChange={e => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
-                />
+              <div className="flex gap-4">
+                   <button 
+                    onClick={saveToGitHub}
+                    disabled={isSaving}
+                    className={`flex items-center gap-2 px-6 py-3 border border-green-500/20 bg-green-900/10 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all ${isSaving ? 'opacity-50' : ''}`}
+                  >
+                    <SaveIcon /> {isSaving ? 'Syncing...' : 'Save to Cloud'}
+                  </button>
+                  <button 
+                    onClick={() => setIsAdmin(false)}
+                    className="px-6 py-3 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                  >
+                    Sign Out
+                  </button>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1 text-blue-400">GitHub Token</label>
-                <input 
-                  type="password"
-                  className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-4 outline-none focus:border-blue-500 transition-all text-sm"
-                  placeholder="ghp_xxxxxxxxxxxx"
-                  value={loginCreds.token}
-                  onChange={e => setLoginCreds(prev => ({ ...prev, token: e.target.value }))}
-                />
-                <p className="text-[9px] text-white/20">Required to save your works globally.</p>
-              </div>
+            </header>
 
-              {loginError && <p className="text-red-500 text-[10px] uppercase tracking-widest font-bold text-center">{loginError}</p>}
+            {saveStatus && (
+                <div className={`mb-8 p-4 rounded-lg text-center text-xs font-bold uppercase tracking-widest ${saveStatus.includes('Error') ? 'bg-red-900/50 text-red-200' : 'bg-green-900/50 text-green-200'}`}>
+                    {saveStatus}
+                </div>
+            )}
+
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-xl font-bold uppercase tracking-widest">Active Works ({projects.length})</h2>
               <button 
-                type="submit"
-                className="w-full bg-white text-black py-4 rounded-xl font-bold uppercase text-[10px] tracking-[0.3em] hover:bg-blue-500 hover:text-white transition-all mt-4"
+                onClick={addProject}
+                className="flex items-center gap-2 bg-blue-600 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 transition-all"
               >
-                Authenticate
+                <PlusIcon /> Add New Work
               </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
-      <section id="hero" className="h-screen flex flex-col justify-center px-6 md:px-12 lg:px-24">
-        <div className="max-w-7xl reveal">
-          <span className="block text-xs uppercase tracking-[0.4em] mb-6 text-blue-500 font-bold">Graphic Designer</span>
-          <h1 className="text-[12vw] md:text-[8vw] lg:text-[7vw] font-extrabold leading-[0.85] tracking-tighter mb-12">
-            DESIGNING <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/20">VISUAL</span> <br />
-            STORIES.
-          </h1>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <p className="text-lg md:text-xl max-w-xl text-white/50 leading-relaxed uppercase tracking-tight">
-              Specializing in Branding, Logo Design, and Motion Graphics. Creating memorable visual identities for modern brands.
-            </p>
-            <div className="flex items-center gap-4 cursor-pointer" onClick={() => scrollTo('work')}>
-               <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center animate-bounce">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-               </div>
-               <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">Explore Work</span>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Project Masonry Grid */}
-      <section id="work" className="py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
-        <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
-          <div className="w-full md:w-auto">
-            <h2 className="text-5xl md:text-8xl font-bold tracking-tighter italic reveal uppercase mb-12">Selected <br />Works</h2>
-            
-            {/* Category Tab */}
-            <div className="relative inline-flex items-center p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md reveal">
-              <div 
-                className="absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-out z-0"
-                style={{ 
-                  left: `${indicatorStyle.left}px`, 
-                  width: `${indicatorStyle.width}px`,
-                  opacity: indicatorStyle.opacity 
-                }}
-              />
-              
-              {categories.map(cat => (
-                <button 
-                  key={cat}
-                  ref={el => categoryRefs.current[cat] = el}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`relative px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 z-10 whitespace-nowrap rounded-full ${
-                    activeCategory === cat ? 'text-black' : 'text-white/40 hover:text-white'
-                  }`}
-                >
-                  {cat}
-                </button>
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+              {projects.map(project => (
+                <div key={project.id} className="break-inside-avoid bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col mb-6">
+                  <div className="mb-6 rounded-lg overflow-hidden bg-black relative group">
+                    <img src={project.imageUrl} className="w-full h-auto object-cover opacity-50 group-hover:opacity-80 transition-opacity" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <label className="cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                        Change Image
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="space-y-4 flex-1">
+                    <input 
+                      className="w-full bg-transparent border-b border-white/10 py-1 text-lg font-bold outline-none focus:border-blue-500 transition-colors"
+                      value={project.title}
+                      onChange={(e) => updateProject(project.id, { title: e.target.value })}
+                      placeholder="Title"
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <select 
+                        className="bg-zinc-800 rounded-lg px-3 py-2 text-[10px] uppercase tracking-widest font-bold outline-none border border-transparent focus:border-white/20"
+                        value={project.category}
+                        onChange={(e) => updateProject(project.id, { category: e.target.value })}
+                      >
+                        <option>Logo Design</option>
+                        <option>Poster Design</option>
+                        <option>Business Card</option>
+                        <option>Illustrations</option>
+                        <option>Motion Graphics</option>
+                      </select>
+                      <input 
+                        className="bg-zinc-800 rounded-lg px-3 py-2 text-[10px] uppercase tracking-widest font-bold outline-none border border-transparent focus:border-white/20"
+                        value={project.year}
+                        onChange={(e) => updateProject(project.id, { year: e.target.value })}
+                        placeholder="Year"
+                      />
+                    </div>
+                    <textarea 
+                      className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-white/60 outline-none border border-transparent focus:border-white/20 resize-none"
+                      rows={2}
+                      value={project.description}
+                      onChange={(e) => updateProject(project.id, { description: e.target.value })}
+                      placeholder="Description"
+                    />
+                    <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
+                      <button 
+                        onClick={() => deleteProject(project.id)}
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </div>
-
-        {/* MASONRY LAYOUT */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 min-h-[600px]">
-          {isLoadingProjects ? (
-             <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em] animate-pulse">
-               Loading Projects...
-             </div>
-          ) : filteredProjects.map((project, idx) => (
-            <div 
-              key={project.id} 
-              className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-zoom-in mb-8 reveal"
-              onClick={() => setSelectedProject(project)}
-            >
-                <img 
-                  src={project.imageUrl} 
-                  alt={project.title} 
-                  className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-                
-                {/* Hover Reveal Info */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                  <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
-                     <span className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-2 block">{project.category}</span>
-                     <h3 className="text-2xl font-bold tracking-tighter mb-2">{project.title}</h3>
-                     <button className="text-xs uppercase tracking-widest font-bold flex items-center gap-2 mt-4">
-                        Expand View
-                        <span className="w-8 h-px bg-white"></span>
-                     </button>
-                  </div>
-                </div>
+      ) : (
+        /* ================= PUBLIC WEBSITE ================= */
+        <>
+          {/* Navigation */}
+          <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-6 md:px-12 flex justify-between items-center">
+            <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer" onClick={() => scrollTo('hero')}>
+              FALALU 
+              <span className="flex h-2 w-2 rounded-full bg-green-500 pulse-green"></span>
             </div>
-          ))}
-          {!isLoadingProjects && filteredProjects.length === 0 && (
-            <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em]">
-              No projects in this category.
+            
+            <div className="hidden md:flex space-x-12 text-[10px] font-bold uppercase tracking-[0.3em]">
+              <button onClick={() => scrollTo('work')} className="hover:opacity-50 transition-opacity">Work</button>
+              <button onClick={() => scrollTo('about')} className="hover:opacity-50 transition-opacity">About</button>
+              <button onClick={() => scrollTo('contact')} className="hover:opacity-50 transition-opacity">Contact</button>
+            </div>
+
+            <button 
+              onClick={() => setShowLogin(true)}
+              className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all flex items-center gap-2"
+            >
+              <LockIcon />
+              Admin
+            </button>
+          </nav>
+
+          {/* Lightbox / Full Screen View */}
+          {selectedProject && (
+            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300 cursor-zoom-out" onClick={() => setSelectedProject(null)}>
+              <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-4 z-[101]">
+                 <CloseIcon />
+              </button>
+              <div className="max-w-7xl w-full max-h-screen flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
+                <img 
+                  src={selectedProject.imageUrl} 
+                  alt={selectedProject.title} 
+                  className="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl mb-8" 
+                />
+                <div className="text-center">
+                   <h3 className="text-2xl font-bold tracking-tighter mb-2">{selectedProject.title}</h3>
+                   <p className="text-white/50 uppercase tracking-widest text-xs">{selectedProject.category} — {selectedProject.year}</p>
+                </div>
+              </div>
             </div>
           )}
-        </div>
-      </section>
 
-      {/* About Section */}
-      <section id="about" className="py-48 px-6 md:px-12 lg:px-24 bg-white text-black rounded-[3rem] md:rounded-[6rem] mx-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
-          <div className="reveal">
-            <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
-            <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-              CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
-            </h2>
-          </div>
-          <div className="reveal space-y-12">
-            <p className="text-2xl md:text-4xl leading-tight font-medium">
-              I am Falalu Rahman, a Graphic Designer with a passion for creative visual storytelling. With a focus on branding, logo design, and motion graphics, I bring ideas to life.
-            </p>
-            <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
-               <div>
-                  <h4 className="mb-4 opacity-40">Software Skills</h4>
-                  <ul className="space-y-2">
-                    <li>Photoshop</li>
-                    <li>Illustrator</li>
-                    <li>InDesign</li>
-                    <li>Corel Draw</li>
-                  </ul>
-               </div>
-               <div>
-                  <h4 className="mb-4 opacity-40">Focus Areas</h4>
-                  <ul className="space-y-2">
-                    <li>Branding</li>
-                    <li>Logo Design</li>
-                    <li>Motion Graphics</li>
-                    <li>Creative Ads</li>
-                  </ul>
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
-        <div className="max-w-4xl mx-auto reveal">
-          <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
-            <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
-          </div>
-           <div className="text-xl opacity-60 font-medium mb-12">
-            +91 7994055131
-          </div>
-          <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-            <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Chat Widget */}
-      <div className={`fixed bottom-6 right-6 z-[60] flex flex-col items-end`}>
-        {isChatOpen && (
-          <div className="bg-[#0f0f0f] w-[320px] md:w-[400px] h-[550px] rounded-3xl shadow-2xl border border-white/5 flex flex-col mb-4 overflow-hidden">
-            <div className="bg-white text-black px-6 py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <BotIcon />
-                <span className="text-xs font-bold uppercase tracking-widest">Assistant</span>
-              </div>
-              <button onClick={() => setIsChatOpen(false)}><CloseIcon /></button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === 'user' ? 'bg-zinc-800 text-white' : 'bg-white text-black'
-                  }`}>
-                    {msg.content}
+          {/* Login Modal */}
+          {showLogin && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6">
+              <div className="w-full max-w-md bg-zinc-900 border border-white/10 p-12 rounded-[2rem] relative reveal active">
+                <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors">
+                  <CloseIcon />
+                </button>
+                <div className="mb-12">
+                  <h2 className="text-3xl font-bold tracking-tighter uppercase italic mb-2">Admin Access</h2>
+                  <p className="text-[10px] uppercase tracking-[0.3em] opacity-40">Identify yourself to enter the workspace</p>
+                </div>
+                <form onSubmit={handleLogin} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1">Username</label>
+                    <input 
+                      type="text"
+                      autoFocus
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-white/30 transition-all text-sm"
+                      placeholder="Username"
+                      value={loginCreds.user}
+                      onChange={e => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1">Password</label>
+                    <input 
+                      type="password"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-white/30 transition-all text-sm"
+                      placeholder="••••••••"
+                      value={loginCreds.pass}
+                      onChange={e => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1 text-blue-400">GitHub Token</label>
+                    <input 
+                      type="password"
+                      className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-4 outline-none focus:border-blue-500 transition-all text-sm"
+                      placeholder="ghp_xxxxxxxxxxxx"
+                      value={loginCreds.token}
+                      onChange={e => setLoginCreds(prev => ({ ...prev, token: e.target.value }))}
+                    />
+                    <p className="text-[9px] text-white/20">Required to save your works globally.</p>
+                  </div>
+
+                  {loginError && <p className="text-red-500 text-[10px] uppercase tracking-widest font-bold text-center">{loginError}</p>}
+                  <button 
+                    type="submit"
+                    className="w-full bg-white text-black py-4 rounded-xl font-bold uppercase text-[10px] tracking-[0.3em] hover:bg-blue-500 hover:text-white transition-all mt-4"
+                  >
+                    Authenticate
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Hero Section */}
+          <section id="hero" className="h-screen flex flex-col justify-center px-6 md:px-12 lg:px-24">
+            <div className="max-w-7xl reveal">
+              <span className="block text-xs uppercase tracking-[0.4em] mb-6 text-blue-500 font-bold">Graphic Designer</span>
+              <h1 className="text-[12vw] md:text-[8vw] lg:text-[7vw] font-extrabold leading-[0.85] tracking-tighter mb-12">
+                DESIGNING <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/20">VISUAL</span> <br />
+                STORIES.
+              </h1>
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <p className="text-lg md:text-xl max-w-xl text-white/50 leading-relaxed uppercase tracking-tight">
+                  Specializing in Branding, Logo Design, and Motion Graphics. Creating memorable visual identities for modern brands.
+                </p>
+                <div className="flex items-center gap-4 cursor-pointer" onClick={() => scrollTo('work')}>
+                   <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center animate-bounce">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+                   </div>
+                   <span className="text-[10px] uppercase tracking-widest font-bold opacity-30">Explore Work</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Project Masonry Grid */}
+          <section id="work" className="py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
+            <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
+              <div className="w-full md:w-auto">
+                <h2 className="text-5xl md:text-8xl font-bold tracking-tighter italic reveal uppercase mb-12">Selected <br />Works</h2>
+                
+                {/* Category Tab */}
+                <div className="relative inline-flex items-center p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md reveal">
+                  <div 
+                    className="absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-out z-0"
+                    style={{ 
+                      left: `${indicatorStyle.left}px`, 
+                      width: `${indicatorStyle.width}px`,
+                      opacity: indicatorStyle.opacity 
+                    }}
+                  />
+                  
+                  {categories.map(cat => (
+                    <button 
+                      key={cat}
+                      ref={el => categoryRefs.current[cat] = el}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`relative px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 z-10 whitespace-nowrap rounded-full ${
+                        activeCategory === cat ? 'text-black' : 'text-white/40 hover:text-white'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* MASONRY LAYOUT */}
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 min-h-[600px]">
+              {isLoadingProjects ? (
+                 <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em] animate-pulse">
+                   Loading Projects...
+                 </div>
+              ) : filteredProjects.map((project, idx) => (
+                <div 
+                  key={project.id} 
+                  className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-zoom-in mb-8 reveal"
+                  onClick={() => setSelectedProject(project)}
+                >
+                    <img 
+                      src={project.imageUrl} 
+                      alt={project.title} 
+                      className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                    
+                    {/* Hover Reveal Info */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                      <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+                         <span className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-2 block">{project.category}</span>
+                         <h3 className="text-2xl font-bold tracking-tighter mb-2">{project.title}</h3>
+                         <button className="text-xs uppercase tracking-widest font-bold flex items-center gap-2 mt-4">
+                            Expand View
+                            <span className="w-8 h-px bg-white"></span>
+                         </button>
+                      </div>
+                    </div>
                 </div>
               ))}
-              {isChatLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white text-black rounded-2xl px-4 py-3 text-sm animate-pulse">Thinking...</div>
+              {!isLoadingProjects && filteredProjects.length === 0 && (
+                <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em]">
+                  No projects in this category.
                 </div>
               )}
-              <div ref={chatEndRef} />
             </div>
+          </section>
 
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-white/5 flex space-x-2">
-              <input 
-                type="text" 
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask about my work..." 
-                className="flex-1 bg-zinc-900 border border-white/5 rounded-full px-4 py-2 text-sm outline-none focus:border-white/20"
-              />
-              <button type="submit" className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center"><SendIcon /></button>
-            </form>
+          {/* About Section */}
+          <section id="about" className="py-48 px-6 md:px-12 lg:px-24 bg-white text-black rounded-[3rem] md:rounded-[6rem] mx-4 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
+              <div className="reveal">
+                <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
+                <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
+                  CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
+                </h2>
+              </div>
+              <div className="reveal space-y-12">
+                <p className="text-2xl md:text-4xl leading-tight font-medium">
+                  I am Falalu Rahman, a Graphic Designer with a passion for creative visual storytelling. With a focus on branding, logo design, and motion graphics, I bring ideas to life.
+                </p>
+                <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
+                   <div>
+                      <h4 className="mb-4 opacity-40">Software Skills</h4>
+                      <ul className="space-y-2">
+                        <li>Photoshop</li>
+                        <li>Illustrator</li>
+                        <li>InDesign</li>
+                        <li>Corel Draw</li>
+                      </ul>
+                   </div>
+                   <div>
+                      <h4 className="mb-4 opacity-40">Focus Areas</h4>
+                      <ul className="space-y-2">
+                        <li>Branding</li>
+                        <li>Logo Design</li>
+                        <li>Motion Graphics</li>
+                        <li>Creative Ads</li>
+                      </ul>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Contact Section */}
+          <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
+            <div className="max-w-4xl mx-auto reveal">
+              <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
+              <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
+                <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
+              </div>
+               <div className="text-xl opacity-60 font-medium mb-12">
+                +91 7994055131
+              </div>
+              <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
+                <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
+                <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
+                <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
+              </div>
+            </div>
+          </section>
+
+          {/* AI Chat Widget */}
+          <div className={`fixed bottom-6 right-6 z-[60] flex flex-col items-end`}>
+            {isChatOpen && (
+              <div className="bg-[#0f0f0f] w-[320px] md:w-[400px] h-[550px] rounded-3xl shadow-2xl border border-white/5 flex flex-col mb-4 overflow-hidden">
+                <div className="bg-white text-black px-6 py-4 flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <BotIcon />
+                    <span className="text-xs font-bold uppercase tracking-widest">Assistant</span>
+                  </div>
+                  <button onClick={() => setIsChatOpen(false)}><CloseIcon /></button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        msg.role === 'user' ? 'bg-zinc-800 text-white' : 'bg-white text-black'
+                      }`}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white text-black rounded-2xl px-4 py-3 text-sm animate-pulse">Thinking...</div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-white/5 flex space-x-2">
+                  <input 
+                    type="text" 
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask about my work..." 
+                    className="flex-1 bg-zinc-900 border border-white/5 rounded-full px-4 py-2 text-sm outline-none focus:border-white/20"
+                  />
+                  <button type="submit" className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center"><SendIcon /></button>
+                </form>
+              </div>
+            )}
+            <button 
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 ${isChatOpen ? 'bg-white text-black' : 'bg-zinc-900 text-white border border-white/10'}`}
+            >
+              {isChatOpen ? <CloseIcon /> : <BotIcon />}
+            </button>
           </div>
-        )}
-        <button 
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 ${isChatOpen ? 'bg-white text-black' : 'bg-zinc-900 text-white border border-white/10'}`}
-        >
-          {isChatOpen ? <CloseIcon /> : <BotIcon />}
-        </button>
-      </div>
+        </>
+      )}
     </div>
   );
 };
