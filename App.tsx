@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: "Hi! I can help you know more about Falalu's design work. What would you like to know?" }
+    { role: 'assistant', content: "Hi! I can help you know more about fallulu's design work. What would you like to know?" }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -457,7 +457,9 @@ const App: React.FC = () => {
           </div>
           <div className="reveal space-y-12">
             <p className="text-2xl md:text-4xl leading-tight font-medium">
-              [cite_start]I am Falalu Rahman[cite: 2][cite_start], a Graphic Designer[cite: 3] [cite_start]with a passion for creative visual storytelling[cite: 9]. [cite_start]With a focus on branding, logo design, and motion graphics[cite: 8], I bring ideas to life.
+              I’m fallulu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, and. My professional foundation includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology Company. I leverage a technical toolkit featuring Photoshop, Illustrator, InDesign, and CorelDraw to create impactful visual identities that resonate. Fluent in English, Malayalam,, I am dedicated to transforming creative concepts into compelling brand stories for a global audience.
+
+
             </p>
             <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                <div>
