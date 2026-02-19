@@ -457,27 +457,26 @@ const App: React.FC = () => {
           </div>
           <div className="reveal space-y-12">
             <p className="text-2xl md:text-4xl leading-tight font-medium">
-              I’m fallulu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, and. My professional foundation includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology Company. I leverage a technical toolkit featuring Photoshop, Illustrator, InDesign, and CorelDraw to create impactful visual identities that resonate. Fluent in English, Malayalam,, I am dedicated to transforming creative concepts into compelling brand stories for a global audience.
-
-
+              I am Falalu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, My professional background includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology. I am highly proficient in Photoshop , Illustrator , InDesign , and CorelDraw , and I am fluent in English, Malayalam, and Arabic.
+              
             </p>
             <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                <div>
                   <h4 className="mb-4 opacity-40">Software Skills</h4>
                   <ul className="space-y-2">
-                    [cite_start]<li>Photoshop[cite: 16]</li>
-                    [cite_start]<li>Illustrator[cite: 18]</li>
-                    [cite_start]<li>InDesign[cite: 17]</li>
-                    [cite_start]<li>Corel Draw[cite: 23]</li>
+                    <li>Photoshop</li>
+                    <li>Illustrator</li>
+                    <li>InDesign</li>
+                    <li>Corel Draw</li>
                   </ul>
                </div>
                <div>
                   <h4 className="mb-4 opacity-40">Focus Areas</h4>
                   <ul className="space-y-2">
-                    [cite_start]<li>Branding[cite: 8]</li>
-                    [cite_start]<li>Logo Design[cite: 8]</li>
-                    [cite_start]<li>Motion Graphics[cite: 8]</li>
-                    [cite_start]<li>Creative Ads[cite: 19]</li>
+                    <li>Branding</li>
+                    <li>Logo Design</li>
+      
+                    <li>Creative Ads</li>
                   </ul>
                </div>
             </div>
@@ -494,7 +493,8 @@ const App: React.FC = () => {
           </div>
           
            <div className="text-xl opacity-60 font-medium mb-12">
-            [cite_start]+91 7994055131[cite: 4]
+            <h1>+91 Contact number </h1>
+             <h3>+91 7994055131</h3>
           </div>
 
           <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
