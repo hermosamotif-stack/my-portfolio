@@ -3,6 +3,7 @@ import { PROJECTS as INITIAL_PROJECTS } from './constants';
 import { Section, ChatMessage, Project } from './types';
 import { getGeminiResponse } from './services/geminiService';
 
+// Icons
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
 const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>;
 const BotIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>;
@@ -12,7 +13,7 @@ const UploadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" heig
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
 
 const App: React.FC = () => {
-  // State for Projects (Persisted in LocalStorage)
+  // State for Projects
   const [projects, setProjects] = useState<Project[]>(() => {
     const saved = localStorage.getItem('ender_projects');
     return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
@@ -24,18 +25,22 @@ const App: React.FC = () => {
   const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
   const [loginError, setLoginError] = useState('');
 
+  // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For Lightbox
+  
+  // Chat State
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: "Hi! I can help you know more about fallulu's design work. What would you like to know?" }
+    { role: 'assistant', content: "Hi! I can help you know more about Falalu's design work. What would you like to know?" }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  // Cursor & Refs
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  
-  // Refs for sliding indicator
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
@@ -53,7 +58,7 @@ const App: React.FC = () => {
     return projects.filter(p => p.category === activeCategory);
   }, [activeCategory, projects]);
 
-  // Update sliding indicator position
+  // Update sliding indicator
   useEffect(() => {
     const activeEl = categoryRefs.current[activeCategory];
     if (activeEl) {
@@ -65,7 +70,7 @@ const App: React.FC = () => {
     }
   }, [activeCategory, categories]);
 
-  // Custom Cursor logic
+  // Custom Cursor
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPos({ x: e.clientX, y: e.clientY });
@@ -113,15 +118,13 @@ const App: React.FC = () => {
     setIsChatLoading(true);
 
     const responseText = await getGeminiResponse([...chatMessages, userMsg]);
-    
     setChatMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
     setIsChatLoading(false);
   };
 
-  // Login Handler (പഴയ ലോഗിൻ രീതി - Token വേണ്ട)
+  // Login Handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Valid credentials: lazza / posterfallu447
     if (loginCreds.user === 'lazza' && loginCreds.pass === 'posterfallu447') {
       setIsAdmin(true);
       setShowLogin(false);
@@ -165,6 +168,9 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // --------------------------------------------------------------------------
+  // ADMIN PANEL RENDER
+  // --------------------------------------------------------------------------
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white p-8 md:p-16">
@@ -196,7 +202,7 @@ const App: React.FC = () => {
             {projects.map(project => (
               <div key={project.id} className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col">
                 <div className="aspect-video mb-6 rounded-lg overflow-hidden bg-black relative group">
-                  <img src={project.imageUrl} className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110" />
+                  <img src={project.imageUrl} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <label className="cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
                       Change Image
@@ -241,21 +247,6 @@ const App: React.FC = () => {
                     onChange={(e) => updateProject(project.id, { description: e.target.value })}
                     placeholder="Description"
                   />
-                  
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Project Image</span>
-                    <label className="w-full bg-zinc-800/50 border border-white/10 rounded-lg px-3 py-3 text-[10px] text-white/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800 transition-colors">
-                      <UploadIcon />
-                      <span>{project.imageUrl.startsWith('data:') ? 'Custom Image Loaded' : 'Upload New Asset'}</span>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
-                      />
-                    </label>
-                  </div>
-
                   <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
                     <button 
                       onClick={() => deleteProject(project.id)}
@@ -273,6 +264,9 @@ const App: React.FC = () => {
     );
   }
 
+  // --------------------------------------------------------------------------
+  // PUBLIC SITE RENDER
+  // --------------------------------------------------------------------------
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white overflow-x-hidden">
       {/* Custom Cursor */}
@@ -303,6 +297,26 @@ const App: React.FC = () => {
           Admin
         </button>
       </nav>
+
+      {/* Lightbox / Full Screen View */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300" onClick={() => setSelectedProject(null)}>
+          <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-4 z-[101]">
+             <CloseIcon />
+          </button>
+          <div className="max-w-7xl w-full max-h-screen flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
+            <img 
+              src={selectedProject.imageUrl} 
+              alt={selectedProject.title} 
+              className="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl mb-8" 
+            />
+            <div className="text-center">
+               <h3 className="text-2xl font-bold tracking-tighter mb-2">{selectedProject.title}</h3>
+               <p className="text-white/50 uppercase tracking-widest text-xs">{selectedProject.category} — {selectedProject.year}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Login Modal */}
       {showLogin && (
@@ -372,7 +386,7 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Project Masonry Grid */}
+      {/* Project Masonry Grid (UPDATED for Masonry Layout) */}
       <section id="work" className="py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
         <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
           <div className="w-full md:w-auto">
@@ -405,37 +419,32 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24 min-h-[600px]">
+        {/* MASONRY LAYOUT IMPLEMENTATION */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 min-h-[600px]">
           {filteredProjects.map((project, idx) => (
             <div 
               key={project.id} 
-              className={`reveal group relative ${idx % 2 !== 0 ? 'md:mt-48' : ''}`}
+              className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-zoom-in mb-8 reveal"
+              onClick={() => setSelectedProject(project)}
             >
-              <div className="overflow-hidden rounded-xl aspect-[4/5] bg-zinc-900 border border-white/5 relative">
+                {/* Image fits naturally (w-full h-auto) - No cropping */}
                 <img 
                   src={project.imageUrl} 
                   alt={project.title} 
-                  // Original Color (No Grayscale)
-                  className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
+                  className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
                 
                 {/* Hover Reveal Info */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
                   <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
                      <span className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-2 block">{project.category}</span>
-                     <h3 className="text-3xl font-bold tracking-tighter mb-4">{project.title}</h3>
-                     <p className="text-sm text-white/60 mb-6">{project.description}</p>
-                     <button className="text-xs uppercase tracking-widest font-bold flex items-center gap-2 group/btn">
-                        View Details
-                        <span className="w-8 h-px bg-white group-hover/btn:w-12 transition-all"></span>
+                     <h3 className="text-2xl font-bold tracking-tighter mb-2">{project.title}</h3>
+                     <button className="text-xs uppercase tracking-widest font-bold flex items-center gap-2 mt-4">
+                        Expand View
+                        <span className="w-8 h-px bg-white"></span>
                      </button>
                   </div>
                 </div>
-              </div>
-              <div className="mt-8 flex justify-between items-center md:hidden">
-                <h3 className="text-xl font-bold">{project.title}</h3>
-                <span className="text-[10px] opacity-40 uppercase tracking-widest">{project.year}</span>
-              </div>
             </div>
           ))}
           {filteredProjects.length === 0 && (
@@ -446,19 +455,18 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* About Section (UPDATED FROM CV) */}
+      {/* About Section */}
       <section id="about" className="py-48 px-6 md:px-12 lg:px-24 bg-white text-black rounded-[3rem] md:rounded-[6rem] mx-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
           <div className="reveal">
             <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
             <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-              ABOUT <br />  <span className="text-zinc-300">ME.</span>
+              CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
             </h2>
           </div>
           <div className="reveal space-y-12">
             <p className="text-2xl md:text-4xl leading-tight font-medium">
-              I am Falalu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, My professional background includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology. I am highly proficient in Photoshop , Illustrator , InDesign , and CorelDraw , and I am fluent in English, Malayalam, and Arabic.
-              
+              I am Falalu Rahman, a Graphic Designer with a passion for creative visual storytelling. With a focus on branding, logo design, and motion graphics, I bring ideas to life.
             </p>
             <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                <div>
@@ -475,7 +483,7 @@ const App: React.FC = () => {
                   <ul className="space-y-2">
                     <li>Branding</li>
                     <li>Logo Design</li>
-      
+                    <li>Motion Graphics</li>
                     <li>Creative Ads</li>
                   </ul>
                </div>
@@ -484,23 +492,20 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Contact Section (UPDATED FROM CV) */}
+      {/* Contact Section */}
       <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
         <div className="max-w-4xl mx-auto reveal">
-          <h2 className="text-6xl md:text-[5vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
+          <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
-           <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
+            <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
           </div>
-          
            <div className="text-xl opacity-60 font-medium mb-12">
-            
-             <h3>Contact number +91 7994055131</h3>
+            +91 7994055131
           </div>
-
           <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-            <a href="https://wa.me/7994055131" className="hover:opacity-100 transition-opacity">WhatsApp</a>
-            <a href="https://www.linkedin.com/in/fallulu-rahman-030865355?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-            <a href="https://www.instagram.com/hermosa_motif/" className="hover:opacity-100 transition-opacity">Instagram</a>
+            <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
+            <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
+            <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
           </div>
         </div>
       </section>
