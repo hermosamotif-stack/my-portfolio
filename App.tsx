@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { PROJECTS as INITIAL_PROJECTS } from './constants';
 import { Section, ChatMessage, Project } from './types';
 import { getGeminiResponse } from './services/geminiService';
 
-// Icons
+// ==========================================
+// CONFIGURATION (ഇവിടെ നിങ്ങളുടെ വിവരങ്ങൾ നൽകുക)
+// ==========================================
+const GITHUB_USERNAME = 'hermosamotif-stack'; 
+const GITHUB_REPO_NAME = 'my-portfolio';
+const PROJECTS_FILE_PATH = 'projects.json'; 
+// ==========================================
+
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
 const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>;
 const BotIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>;
@@ -11,54 +17,61 @@ const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>;
 const UploadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
 
 const App: React.FC = () => {
-  // State for Projects
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem('ender_projects');
-    return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
-  });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   // Security State
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
+  const [loginCreds, setLoginCreds] = useState({ user: '', pass: '', token: '' });
   const [loginError, setLoginError] = useState('');
+  const [githubToken, setGithubToken] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
 
-  // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For Lightbox
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   
-  // Chat State
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: "Hi! I can help you know more about Falalu's design work. What would you like to know?" }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
-  
-  // Cursor & Refs
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // Persistence
+  // 1. Fetch Projects from GitHub JSON on Load (ഇത് എല്ലാവർക്കും ഡാറ്റ ലഭ്യമാക്കുന്നു)
   useEffect(() => {
-    localStorage.setItem('ender_projects', JSON.stringify(projects));
-  }, [projects]);
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(`./${PROJECTS_FILE_PATH}?t=${Date.now()}`); 
+        if (!response.ok) throw new Error("Failed to load projects");
+        const data = await response.json();
+        setProjects(data);
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
-  // Categories list
   const categories = useMemo(() => ['All', ...Array.from(new Set(projects.map(p => p.category)))], [projects]);
 
-  // Filtered projects
   const filteredProjects = useMemo(() => {
     if (activeCategory === 'All') return projects;
     return projects.filter(p => p.category === activeCategory);
   }, [activeCategory, projects]);
 
-  // Update sliding indicator
   useEffect(() => {
     const activeEl = categoryRefs.current[activeCategory];
     if (activeEl) {
@@ -70,7 +83,6 @@ const App: React.FC = () => {
     }
   }, [activeCategory, categories]);
 
-  // Custom Cursor
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPos({ x: e.clientX, y: e.clientY });
@@ -81,7 +93,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Reveal animations
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -122,25 +133,85 @@ const App: React.FC = () => {
     setIsChatLoading(false);
   };
 
-  // Login Handler
+  // Login Handler (ഇവിടെ Token ആവശ്യമാണ്)
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginCreds.user === 'lazza' && loginCreds.pass === 'posterfallu447') {
-      setIsAdmin(true);
-      setShowLogin(false);
-      setLoginError('');
-      setLoginCreds({ user: '', pass: '' });
+      if(loginCreds.token.startsWith('gh')) {
+          setGithubToken(loginCreds.token);
+          setIsAdmin(true);
+          setShowLogin(false);
+          setLoginError('');
+          setLoginCreds({ user: '', pass: '', token: '' });
+      } else {
+          setLoginError('Invalid GitHub Token format (starts with ghp_...)');
+      }
     } else {
       setLoginError('Invalid credentials.');
     }
   };
 
-  // Admin Actions
+  // 2. GitHub Sync Functionality (മാറ്റങ്ങൾ ഗിറ്റ്ഹബ്ബിലേക്ക് സേവ് ചെയ്യുന്നു)
+  const saveToGitHub = async () => {
+    if (!githubToken) {
+        alert("GitHub Token missing. Please relogin.");
+        return;
+    }
+    setIsSaving(true);
+    setSaveStatus('Connecting to GitHub...');
+
+    try {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/contents/${PROJECTS_FILE_PATH}`;
+        
+        const getRes = await fetch(apiUrl, {
+            headers: { 
+                'Authorization': `token ${githubToken}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        let sha = '';
+        if (getRes.ok) {
+            const data = await getRes.json();
+            sha = data.sha;
+        }
+
+        const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(projects, null, 2))));
+        
+        const putRes = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: `Update portfolio works: ${new Date().toISOString()}`,
+                content: contentBase64,
+                sha: sha || undefined
+            })
+        });
+
+        if (!putRes.ok) {
+            const err = await putRes.json();
+            throw new Error(err.message || "Failed to update");
+        }
+
+        setSaveStatus('Saved! Live site will update in ~2 mins.');
+        setTimeout(() => setSaveStatus(''), 5000);
+
+    } catch (error: any) {
+        console.error(error);
+        setSaveStatus(`Error: ${error.message}`);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
   const addProject = () => {
     const newProj: Project = {
       id: Date.now().toString(),
       title: 'New Project',
-      category: 'Logo Design',
+      category: 'Poster Design',
       description: 'Project description here...',
       imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200',
       year: new Date().getFullYear().toString()
@@ -168,9 +239,6 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // --------------------------------------------------------------------------
-  // ADMIN PANEL RENDER
-  // --------------------------------------------------------------------------
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white p-8 md:p-16">
@@ -180,13 +248,28 @@ const App: React.FC = () => {
               <h1 className="text-4xl font-extrabold tracking-tighter uppercase italic">Control Panel</h1>
               <p className="text-xs uppercase tracking-[0.3em] opacity-40 mt-2">Manage your visual archive</p>
             </div>
-            <button 
-              onClick={() => setIsAdmin(false)}
-              className="px-6 py-3 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-            >
-              Sign Out
-            </button>
+            <div className="flex gap-4">
+                 <button 
+                  onClick={saveToGitHub}
+                  disabled={isSaving}
+                  className={`flex items-center gap-2 px-6 py-3 border border-green-500/20 bg-green-900/10 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all ${isSaving ? 'opacity-50' : ''}`}
+                >
+                  <SaveIcon /> {isSaving ? 'Syncing...' : 'Save to Cloud'}
+                </button>
+                <button 
+                  onClick={() => setIsAdmin(false)}
+                  className="px-6 py-3 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                >
+                  Sign Out
+                </button>
+            </div>
           </header>
+
+          {saveStatus && (
+              <div className={`mb-8 p-4 rounded-lg text-center text-xs font-bold uppercase tracking-widest ${saveStatus.includes('Error') ? 'bg-red-900/50 text-red-200' : 'bg-green-900/50 text-green-200'}`}>
+                  {saveStatus}
+              </div>
+          )}
 
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-xl font-bold uppercase tracking-widest">Active Works ({projects.length})</h2>
@@ -198,11 +281,11 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
             {projects.map(project => (
-              <div key={project.id} className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col">
-                <div className="aspect-video mb-6 rounded-lg overflow-hidden bg-black relative group">
-                  <img src={project.imageUrl} className="w-full h-full object-cover" />
+              <div key={project.id} className="break-inside-avoid bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col mb-6">
+                <div className="mb-6 rounded-lg overflow-hidden bg-black relative group">
+                  <img src={project.imageUrl} className="w-full h-auto object-cover opacity-50 group-hover:opacity-80 transition-opacity" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <label className="cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
                       Change Image
@@ -232,6 +315,7 @@ const App: React.FC = () => {
                       <option>Poster Design</option>
                       <option>Business Card</option>
                       <option>Illustrations</option>
+                      <option>Motion Graphics</option>
                     </select>
                     <input 
                       className="bg-zinc-800 rounded-lg px-3 py-2 text-[10px] uppercase tracking-widest font-bold outline-none border border-transparent focus:border-white/20"
@@ -247,6 +331,21 @@ const App: React.FC = () => {
                     onChange={(e) => updateProject(project.id, { description: e.target.value })}
                     placeholder="Description"
                   />
+                  
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Project Image</span>
+                    <label className="w-full bg-zinc-800/50 border border-white/10 rounded-lg px-3 py-3 text-[10px] text-white/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800 transition-colors">
+                      <UploadIcon />
+                      <span>{project.imageUrl.startsWith('data:') ? 'Custom Image Loaded' : 'Upload New Asset'}</span>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  </div>
+
                   <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
                     <button 
                       onClick={() => deleteProject(project.id)}
@@ -351,6 +450,18 @@ const App: React.FC = () => {
                   onChange={e => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold opacity-30 px-1 text-blue-400">GitHub Token</label>
+                <input 
+                  type="password"
+                  className="w-full bg-white/5 border border-blue-500/30 rounded-xl px-4 py-4 outline-none focus:border-blue-500 transition-all text-sm"
+                  placeholder="ghp_xxxxxxxxxxxx"
+                  value={loginCreds.token}
+                  onChange={e => setLoginCreds(prev => ({ ...prev, token: e.target.value }))}
+                />
+                <p className="text-[9px] text-white/20">Required to save your works globally.</p>
+              </div>
+
               {loginError && <p className="text-red-500 text-[10px] uppercase tracking-widest font-bold text-center">{loginError}</p>}
               <button 
                 type="submit"
@@ -386,7 +497,7 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Project Masonry Grid (UPDATED for Masonry Layout) */}
+      {/* Project Masonry Grid */}
       <section id="work" className="py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
         <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
           <div className="w-full md:w-auto">
@@ -419,15 +530,18 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* MASONRY LAYOUT IMPLEMENTATION */}
+        {/* MASONRY LAYOUT */}
         <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 min-h-[600px]">
-          {filteredProjects.map((project, idx) => (
+          {isLoadingProjects ? (
+             <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em] animate-pulse">
+               Loading Projects...
+             </div>
+          ) : filteredProjects.map((project, idx) => (
             <div 
               key={project.id} 
               className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-zoom-in mb-8 reveal"
               onClick={() => setSelectedProject(project)}
             >
-                {/* Image fits naturally (w-full h-auto) - No cropping */}
                 <img 
                   src={project.imageUrl} 
                   alt={project.title} 
@@ -447,7 +561,7 @@ const App: React.FC = () => {
                 </div>
             </div>
           ))}
-          {filteredProjects.length === 0 && (
+          {!isLoadingProjects && filteredProjects.length === 0 && (
             <div className="col-span-full py-48 text-center text-white/20 uppercase tracking-[0.5em]">
               No projects in this category.
             </div>
