@@ -672,12 +672,10 @@ const App: React.FC = () => {
               </div>
               <div className="reveal space-y-12">
                 <p className="text-2xl md:text-4xl leading-tight font-medium">
-                I am <strong>Falalu Rahman</strong>, a <strong>Graphic Designer</strong> based in <strong>Malappuram, Kerala</strong>, with <strong>five years of freelance experience</strong> specializing in <strong>branding, logo design,</strong>.<br><br>
-My professional foundation includes a <strong>BA in Multimedia</strong> from Malabar College of Advanced Studies, a <strong>Diploma in Creative Ads</strong> from <strong>Kiasco Design Academy</strong>, and a <strong>specialized branding course</strong> from Chandraz Information Technology.<br><br>
-I am highly proficient in <strong>Photoshop, Illustrator, InDesign, and CorelDraw</strong>, and I am fluent in <strong>English, Malayalam,</strong>.
-
-
-                </p>
+                    I am Falalu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design,
+My professional foundation includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology.
+I am highly proficient in Photoshop, Illustrator, InDesign, and CorelDraw , and I am fluent in English, Malayalam,
+ </p>
                 <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                    <div>
                       <h4 className="mb-4 opacity-40">Software Skills</h4>
