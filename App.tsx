@@ -8,7 +8,8 @@ import { getGeminiResponse } from './services/geminiService';
 // ==========================================
 const GITHUB_USERNAME = 'hermosamotif-stack'; 
 const GITHUB_REPO_NAME = 'my-portfolio';
-const PROJECTS_FILE_PATH = 'projects.json'; 
+const SAVE_FILE_PATH = 'public/projects.json'; // ഇനി ഡാറ്റ പബ്ലിക് ഫോൾഡറിൽ സേവ് ആകും
+const FETCH_FILE_PATH = './projects.json'; // ബോട്ട് ഡിപ്ലോയ് ചെയ്ത വെബ്സൈറ്റിൽ നിന്ന് വായിക്കും
 // ==========================================
 
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
@@ -53,21 +54,18 @@ const App: React.FC = () => {
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // 1. Fetch Projects from RAW GitHub File (ഏറ്റവും പുതിയ മാറ്റം)
+  // 1. Fetch Projects (Bot Deploy ചെയ്ത ഡാറ്റ വലിച്ചെടുക്കുന്നു)
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // ഇവിടെ നമ്മൾ ഗിറ്റ്ഹബ്ബിലെ ഒറിജിനൽ ഡാറ്റ നേരിട്ട് വിളിക്കുന്നു
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/main/${PROJECTS_FILE_PATH}?t=${Date.now()}`;
-        const response = await fetch(rawUrl); 
+        const response = await fetch(`${FETCH_FILE_PATH}?t=${Date.now()}`); 
         
-        if (!response.ok) throw new Error("Failed to load projects from GitHub");
+        if (!response.ok) throw new Error("Failed to load projects");
         
         const data = await response.json();
         
         if (data && Array.isArray(data) && data.length > 0) {
           setProjects(data);
-          // എല്ലാവർക്കും ഡാറ്റ കിട്ടാൻ വേണ്ടി അത് സിങ്ക് ചെയ്യുന്നു
           localStorage.setItem('ender_projects', JSON.stringify(data));
         }
       } catch (error) {
@@ -171,10 +169,10 @@ const App: React.FC = () => {
         return;
     }
     setIsSaving(true);
-    setSaveStatus('Connecting to GitHub...');
+    setSaveStatus('Connecting to GitHub Bot...');
 
     try {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/contents/${PROJECTS_FILE_PATH}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/contents/${SAVE_FILE_PATH}`;
         
         const getRes = await fetch(apiUrl, {
             headers: { 
@@ -209,8 +207,8 @@ const App: React.FC = () => {
             throw new Error(err.message || "Failed to update");
         }
 
-        setSaveStatus('Saved! Data is live immediately.');
-        setTimeout(() => setSaveStatus(''), 5000);
+        setSaveStatus('Saved! Bot is working. Live site will update in ~2 mins.');
+        setTimeout(() => setSaveStatus(''), 8000);
 
     } catch (error: any) {
         console.error(error);
