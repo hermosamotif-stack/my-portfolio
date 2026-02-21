@@ -8,8 +8,8 @@ import { getGeminiResponse } from './services/geminiService';
 // ==========================================
 const GITHUB_USERNAME = 'hermosamotif-stack'; 
 const GITHUB_REPO_NAME = 'my-portfolio';
-const SAVE_FILE_PATH = 'public/projects.json'; // ഇനി ഡാറ്റ പബ്ലിക് ഫോൾഡറിൽ സേവ് ആകും
-const FETCH_FILE_PATH = './projects.json'; // ബോട്ട് ഡിപ്ലോയ് ചെയ്ത വെബ്സൈറ്റിൽ നിന്ന് വായിക്കും
+const SAVE_FILE_PATH = 'public/projects.json'; 
+const FETCH_FILE_PATH = './projects.json'; 
 // ==========================================
 
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
@@ -20,6 +20,7 @@ const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" heigh
 const UploadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
 const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
+const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(() => {
@@ -50,11 +51,13 @@ const App: React.FC = () => {
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
   
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const categoryRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // 1. Fetch Projects (Bot Deploy ചെയ്ത ഡാറ്റ വലിച്ചെടുക്കുന്നു)
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -253,7 +256,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white overflow-x-hidden relative">
       
-      {/* 🔴 CUSTOM CURSOR 🔴 */}
+      {/* CUSTOM CURSOR */}
       <div 
         id="custom-cursor"
         className={`fixed top-0 left-0 w-4 h-4 rounded-full bg-white z-[9999] pointer-events-none mix-blend-difference transition-transform duration-200 ease-out flex items-center justify-center ${isPointer ? 'scale-[4] blur-[1px]' : 'scale-100'}`}
@@ -369,26 +372,49 @@ const App: React.FC = () => {
       ) : (
         /* ================= PUBLIC WEBSITE ================= */
         <>
-          <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-6 md:px-12 flex justify-between items-center">
-            <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer" onClick={() => scrollTo('hero')}>
+          <nav className="fixed top-0 left-0 w-full z-50 glass px-6 py-4 md:py-6 md:px-12 flex justify-between items-center">
+            <div className="text-xl font-bold tracking-tighter uppercase flex items-center gap-3 cursor-pointer z-50" onClick={() => {scrollTo('hero'); setIsMobileMenuOpen(false);}}>
               FALALU 
               <span className="flex h-2 w-2 rounded-full bg-green-500 pulse-green"></span>
             </div>
             
+            {/* Desktop Menu */}
             <div className="hidden md:flex space-x-12 text-[10px] font-bold uppercase tracking-[0.3em]">
               <button onClick={() => scrollTo('work')} className="hover:opacity-50 transition-opacity">Work</button>
               <button onClick={() => scrollTo('about')} className="hover:opacity-50 transition-opacity">About</button>
               <button onClick={() => scrollTo('contact')} className="hover:opacity-50 transition-opacity">Contact</button>
             </div>
 
-            <button 
-              onClick={() => setShowLogin(true)}
-              className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all flex items-center gap-2"
-            >
-              <LockIcon />
-              Admin
-            </button>
+            <div className="flex items-center gap-4 z-50">
+              <button 
+                onClick={() => setShowLogin(true)}
+                className="hidden md:flex text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all items-center gap-2"
+              >
+                <LockIcon />
+                Admin
+              </button>
+              {/* Mobile Menu Toggle Button */}
+              <button className="md:hidden text-white p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                 {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+              </button>
+            </div>
           </nav>
+
+          {/* Mobile Overlay Menu */}
+          {isMobileMenuOpen && (
+            <div className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center space-y-8 md:hidden animate-in fade-in duration-300">
+              <button onClick={() => {scrollTo('work'); setIsMobileMenuOpen(false);}} className="text-2xl font-bold uppercase tracking-[0.3em] hover:text-blue-500 transition-colors">Work</button>
+              <button onClick={() => {scrollTo('about'); setIsMobileMenuOpen(false);}} className="text-2xl font-bold uppercase tracking-[0.3em] hover:text-blue-500 transition-colors">About</button>
+              <button onClick={() => {scrollTo('contact'); setIsMobileMenuOpen(false);}} className="text-2xl font-bold uppercase tracking-[0.3em] hover:text-blue-500 transition-colors">Contact</button>
+              <button 
+                onClick={() => { setShowLogin(true); setIsMobileMenuOpen(false); }}
+                className="mt-8 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] px-6 py-3 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all"
+              >
+                <LockIcon />
+                Admin Login
+              </button>
+            </div>
+          )}
 
           {/* Lightbox / Full Screen View */}
           {selectedProject && (
@@ -493,31 +519,35 @@ const App: React.FC = () => {
           {/* Project Masonry Grid */}
           <section id="work" className="py-24 px-6 md:px-12 lg:px-24 border-t border-white/5">
             <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
-              <div className="w-full md:w-auto">
+              <div className="w-full md:w-auto overflow-hidden">
                 <h2 className="text-5xl md:text-8xl font-bold tracking-tighter italic reveal uppercase mb-12">Selected <br />Works</h2>
                 
-                <div className="relative inline-flex items-center p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md reveal">
-                  <div 
-                    className="absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-out z-0"
-                    style={{ 
-                      left: `${indicatorStyle.left}px`, 
-                      width: `${indicatorStyle.width}px`,
-                      opacity: indicatorStyle.opacity 
-                    }}
-                  />
-                  
-                  {categories.map(cat => (
-                    <button 
-                      key={cat}
-                      ref={el => categoryRefs.current[cat] = el}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`relative px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 z-10 whitespace-nowrap rounded-full ${
-                        activeCategory === cat ? 'text-black' : 'text-white/40 hover:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                {/* Scrollable Category Tab for Mobile */}
+                <div className="w-full overflow-x-auto pb-4 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+                  <div className="relative inline-flex items-center p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md reveal min-w-max">
+                    <div 
+                      className="absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-out z-0"
+                      style={{ 
+                        left: `${indicatorStyle.left}px`, 
+                        width: `${indicatorStyle.width}px`,
+                        opacity: indicatorStyle.opacity 
+                      }}
+                    />
+                    
+                    {categories.map(cat => (
+                      <button 
+                        key={cat}
+                        ref={el => categoryRefs.current[cat] = el}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`relative px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 z-10 whitespace-nowrap rounded-full ${
+                          activeCategory === cat ? 'text-black' : 'text-white/40 hover:text-white'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -565,12 +595,12 @@ const App: React.FC = () => {
               <div className="reveal">
                 <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
                 <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-                  ABOUT <br />  <span className="text-zinc-300">ME.</span>
+                  CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
                 </h2>
               </div>
               <div className="reveal space-y-12">
                 <p className="text-2xl md:text-4xl leading-tight font-medium">
-                 I am Falalu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, and motion graphics. My professional background includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology. I am highly proficient in Photoshop , Illustrator , InDesign , and CorelDraw , and I am fluent in English, Malayalam, and Arabic.
+                  I am Falalu Rahman, a Graphic Designer with a passion for creative visual storytelling. With a focus on branding, logo design, and motion graphics, I bring ideas to life.
                 </p>
                 <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                    <div>
@@ -599,17 +629,17 @@ const App: React.FC = () => {
           {/* Contact Section */}
           <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
             <div className="max-w-4xl mx-auto reveal">
-              <h2 className="text-6xl md:text-[5vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
+              <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
               <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
                 <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
               </div>
                <div className="text-xl opacity-60 font-medium mb-12">
-                Contact number +91 7994055131
+                +91 7994055131
               </div>
               <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-                <a href="https://wa.me/7994055131" className="hover:opacity-100 transition-opacity">WhatsApp</a>
-                <a href="https://www.linkedin.com/in/fallulu-rahman-030865355/" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-                <a href="https://www.instagram.com/hermosa_motif/" className="hover:opacity-100 transition-opacity">Instagram</a>
+                <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
+                <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
+                <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
               </div>
             </div>
           </section>
