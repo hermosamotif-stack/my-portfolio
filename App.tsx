@@ -38,6 +38,9 @@ const App: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
 
+  // Image Uploading State
+  const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -243,13 +246,59 @@ const App: React.FC = () => {
     }
   };
 
-  const handleImageUpload = (id: string, file: File | null) => {
+  // 🚀 PUSHING IMAGES DIRECTLY TO GITHUB REPO (NEW SUPER FAST METHOD) 🚀
+  const handleImageUpload = async (id: string, file: File | null) => {
     if (!file) return;
+    if (!githubToken) {
+        alert("GitHub token is missing. Please log out and log in again.");
+        return;
+    }
+
+    setUploadingImageId(id);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      updateProject(id, { imageUrl: base64String });
+    
+    reader.onloadend = async () => {
+        try {
+            // Get the base64 part only
+            const base64Data = (reader.result as string).split(',')[1];
+            // Clean filename
+            const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const fileName = `img_${Date.now()}_${cleanFileName}`;
+            const filePath = `public/uploads/${fileName}`; // Save as file in repo
+            
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/contents/${filePath}`;
+            
+            const res = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: `Upload image file: ${fileName}`,
+                    content: base64Data
+                })
+            });
+            
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || "Upload failed");
+            }
+            
+            // Get the direct URL of the uploaded image file
+            const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}/main/${filePath}`;
+            
+            // Update the specific project with this raw URL instead of base64 text
+            updateProject(id, { imageUrl: rawUrl });
+            
+        } catch (error: any) {
+            console.error(error);
+            alert("Image upload failed: " + error.message);
+        } finally {
+            setUploadingImageId(null);
+        }
     };
+    
     reader.readAsDataURL(file);
   };
 
@@ -310,14 +359,17 @@ const App: React.FC = () => {
                 <div key={project.id} className="break-inside-avoid bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden p-6 hover:border-white/20 transition-all flex flex-col mb-6">
                   <div className="mb-6 rounded-lg overflow-hidden bg-black relative group">
                     <img src={project.imageUrl} className="w-full h-auto object-cover opacity-50 group-hover:opacity-80 transition-opacity" />
+                    
+                    {/* Image Upload Button overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <label className="cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                        Change Image
+                      <label className={`cursor-pointer bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all ${uploadingImageId === project.id ? 'pointer-events-none opacity-50' : ''}`}>
+                        {uploadingImageId === project.id ? 'Uploading...' : 'Change Image'}
                         <input 
                           type="file" 
                           className="hidden" 
                           accept="image/*"
                           onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
+                          disabled={uploadingImageId === project.id}
                         />
                       </label>
                     </div>
@@ -355,6 +407,26 @@ const App: React.FC = () => {
                       onChange={(e) => updateProject(project.id, { description: e.target.value })}
                       placeholder="Description"
                     />
+                    
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Project Image</span>
+                      <label className={`w-full bg-zinc-800/50 border border-white/10 rounded-lg px-3 py-3 text-[10px] text-white/40 flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800 transition-colors ${uploadingImageId === project.id ? 'pointer-events-none opacity-50' : ''}`}>
+                        <UploadIcon />
+                        <span>
+                          {uploadingImageId === project.id 
+                            ? 'Uploading directly to GitHub...' 
+                            : (project.imageUrl.startsWith('http') && !project.imageUrl.includes('unsplash') ? 'Cloud Image Loaded' : 'Upload New Asset')}
+                        </span>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(project.id, e.target.files?.[0] || null)}
+                          disabled={uploadingImageId === project.id}
+                        />
+                      </label>
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
                       <button 
                         onClick={() => deleteProject(project.id)}
