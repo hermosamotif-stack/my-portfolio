@@ -565,12 +565,12 @@ const App: React.FC = () => {
               <div className="reveal">
                 <span className="text-xs uppercase tracking-widest font-bold mb-8 block opacity-40">02 — Expertise</span>
                 <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-[0.9] mb-12 uppercase">
-                  CREATIVE <br /> DESIGN <br /> <span className="text-zinc-300">SOLUTIONS.</span>
+                  ABOUT <br />  <span className="text-zinc-300">ME.</span>
                 </h2>
               </div>
               <div className="reveal space-y-12">
                 <p className="text-2xl md:text-4xl leading-tight font-medium">
-                  I am Falalu Rahman, a Graphic Designer with a passion for creative visual storytelling. With a focus on branding, logo design, and motion graphics, I bring ideas to life.
+                 I am Falalu Rahman , a Graphic Designer based in Malappuram, Kerala , with five years of freelance experience specializing in branding, logo design, and motion graphics. My professional background includes a BA in Multimedia from Malabar College of Advanced Studies, a Diploma in Creative Ads from Kiasco Design Academy, and a specialized branding course from Chandraz Information Technology. I am highly proficient in Photoshop , Illustrator , InDesign , and CorelDraw , and I am fluent in English, Malayalam, and Arabic.
                 </p>
                 <div className="grid grid-cols-2 gap-8 text-xs uppercase tracking-widest font-bold pt-12 border-t border-black/10">
                    <div>
@@ -599,17 +599,17 @@ const App: React.FC = () => {
           {/* Contact Section */}
           <section id="contact" className="py-48 px-6 md:px-12 lg:px-24 text-center mt-[-10vh] pt-[20vh]">
             <div className="max-w-4xl mx-auto reveal">
-              <h2 className="text-6xl md:text-[10vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
+              <h2 className="text-6xl md:text-[5vw] font-extrabold tracking-tighter mb-12 uppercase">Connect.</h2>
               <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-24">
                 <a href="mailto:falalurahman447@email.com" className="text-2xl md:text-4xl font-bold border-b-2 border-white/20 hover:border-white transition-colors py-2 tracking-tighter">falalurahman447@email.com</a>
               </div>
                <div className="text-xl opacity-60 font-medium mb-12">
-                +91 7994055131
+                Contact number +91 7994055131
               </div>
               <div className="flex justify-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
-                <a href="#" className="hover:opacity-100 transition-opacity">WhatsApp</a>
-                <a href="#" className="hover:opacity-100 transition-opacity">LinkedIn</a>
-                <a href="#" className="hover:opacity-100 transition-opacity">Instagram</a>
+                <a href="https://wa.me/7994055131" className="hover:opacity-100 transition-opacity">WhatsApp</a>
+                <a href="https://www.linkedin.com/in/fallulu-rahman-030865355/" className="hover:opacity-100 transition-opacity">LinkedIn</a>
+                <a href="https://www.instagram.com/hermosa_motif/" className="hover:opacity-100 transition-opacity">Instagram</a>
               </div>
             </div>
           </section>
