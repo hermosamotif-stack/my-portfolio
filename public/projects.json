@@ -1,5 +1,13 @@
 [
   {
+    "id": "1771764995979",
+    "title": "New Project",
+    "category": "Poster Design",
+    "description": "Project description here...",
+    "imageUrl": "https://raw.githubusercontent.com/hermosamotif-stack/my-portfolio/main/public/uploads/img_1771765010065_WhatsApp_Image_2026_02_21_at_2.00.03_PM.jpeg",
+    "year": "2026"
+  },
+  {
     "id": "1771665910123",
     "title": "New Project",
     "category": "Logo Design",
@@ -66,7 +74,7 @@
   {
     "id": "1771665787249",
     "title": "New Project",
-    "category": "Poster Design",
+    "category": "Logo Design",
     "description": "Project description here...",
     "imageUrl": "https://raw.githubusercontent.com/hermosamotif-stack/my-portfolio/main/public/uploads/img_1771665793714_WhatsApp_Image_2026_02_21_at_1.08.19_PM__3_.jpeg",
     "year": "2026"
